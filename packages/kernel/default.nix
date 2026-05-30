@@ -94,10 +94,6 @@ in
         name = "hci-qca-drop-unused-event";
         patch = ./patches/hci-qca-drop-unused-event.patch;
       }
-      {
-        name = "nothing-spacewar-audio";
-        patch = ./patches/nothing-spacewar-audio.patch;
-      }
     ];
     modDirVersion = modDirVersion;
     src = kernelSrc;
