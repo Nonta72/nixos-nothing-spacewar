@@ -1,5 +1,5 @@
 {pkgs, ...}: {
-  # Import hardware-specific configuration for Fairphone 5 and GNOME Mobile.
+  # Import hardware-specific configuration for Nothing Phone (1) and GNOME Mobile.
   imports = [
     ../../modules/bootmac
     ../../modules/hardware
@@ -7,10 +7,10 @@
     ../../modules/gnome-mobile
   ];
 
-  networking.hostName = "fairphone";
+  networking.hostName = "nothing";
 
   # Enable Qualcomm modem support.
-  nixos-fairphone-fp5.modem.enable = true;
+  nixos-nothing-spacewar.modem.enable = true;
 
   # Enable experimental Nix features (flakes).
   nix.settings.experimental-features = ["nix-command" "flakes"];

@@ -1,5 +1,5 @@
 {
-  description = "NixOS on Fairphone 5";
+  description = "NixOS on Nothing Phone (1)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -29,7 +29,7 @@
         # Concatenate kernel (Image.gz) with device tree blob.
         # The bootloader expects them as a single file.
         echo "Concatenating kernel and DTB..."
-        cat "$kernelPath/Image.gz" "$kernelPath/dtbs/qcom/qcm6490-fairphone-fp5.dtb" > Image-with-dtb.gz
+        cat "$kernelPath/Image.gz" "$kernelPath/dtbs/qcom/sm7325-nothing-spacewar.dtb" > Image-with-dtb.gz
 
         # Build Android boot image using mkbootimg.
         # Parameters based on PostmarketOS deviceinfo.
@@ -46,7 +46,7 @@
           --dtb_offset 0x01f00000 \
           --tags_offset 0x00000100 \
           --pagesize 4096 \
-          --dtb "$kernelPath/dtbs/qcom/qcm6490-fairphone-fp5.dtb" \
+          --dtb "$kernelPath/dtbs/qcom/sm7325-nothing-spacewar.dtb" \
           -o "$out"
 
         echo "Boot image created successfully: $out"
@@ -222,12 +222,12 @@
 
       # Separate overlays for more custom use cases.
       overlays = let
-        fairphone-fp5 = import ./overlays/fairphone-fp5;
+        nothing-spacewar = import ./overlays/nothing-spacewar;
       in {
-        inherit fairphone-fp5;
+        inherit nothing-spacewar;
 
-        # Export `fairphone-fp5` as the default overlay.
-        default = fairphone-fp5;
+        # Export `nothing-spacewar` as the default overlay.
+        default = nothing-spacewar;
       };
     };
 }

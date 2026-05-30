@@ -1,4 +1,4 @@
-# NixOS module for Qualcomm modem support on Fairphone 5.
+# NixOS module for Qualcomm modem support on Nothing Phone (1).
 #
 # This module enables the userspace services required for the QDM5577 modem:
 # - ModemManager: High-level modem management.
@@ -14,14 +14,14 @@
   pkgs,
   ...
 }: let
-  cfg = config.nixos-fairphone-fp5.modem;
+  cfg = config.nixos-nothing-spacewar.modem;
 in {
-  options.nixos-fairphone-fp5.modem = {
+  options.nixos-nothing-spacewar.modem = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
       description = ''
-        Enable Qualcomm modem support for Fairphone 5.
+        Enable Qualcomm modem support for Nothing Phone (1).
 
         This sets up the necessary userspace services to manage the QDM5577 modem.
       '';

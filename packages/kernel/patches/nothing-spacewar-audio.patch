@@ -1,0 +1,282 @@
+From f3426deeccc79158d98d6df791d5ca07d13c8daf Mon Sep 17 00:00:00 2001
+From: Kurt Morris <kurt.morris@me.com>
+Date: Sat, 28 Mar 2026 18:05:39 -0700
+Subject: [PATCH] arm64: dts: qcom: sm7325-nothing-spacewar: add WCD9385 codec
+
+On Nothing Phone 1 WCD9385 codec is used for microphones and type-c analog
+audio headset. Enable relevant lpass macros, pinctrl, and dai links required for that.
+---
+ .../boot/dts/qcom/sm7325-nothing-spacewar.dts | 208 ++++++++++++++++++
+ 1 file changed, 208 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts b/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts
+index 7a242f79d91dfa..d3f76933472141 100644
+--- a/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts
++++ b/arch/arm64/boot/dts/qcom/sm7325-nothing-spacewar.dts
+@@ -36,6 +36,36 @@
+ 		wifi0 = &wifi;
+ 	};
+ 
++	wcd9385: audio-codec {
++		compatible = "qcom,wcd9385-codec";
++
++		pinctrl-0 = <&wcd_reset_n>;
++		pinctrl-1 = <&wcd_reset_n_sleep>;
++		pinctrl-names = "default", "sleep";
++
++		reset-gpios = <&tlmm 83 GPIO_ACTIVE_LOW>;
++
++		vdd-rxtx-supply = <&vreg_l18b_1p8>;
++		vdd-io-supply = <&vreg_l18b_1p8>;
++		vdd-buck-supply = <&vreg_l17b_1p8>;
++		vdd-mic-bias-supply = <&vreg_bob>;
++
++		qcom,micbias1-microvolt = <1800000>;
++		qcom,micbias2-microvolt = <1800000>;
++		qcom,micbias3-microvolt = <1800000>;
++		qcom,micbias4-microvolt = <1800000>;
++
++		qcom,mbhc-buttons-vthreshold-microvolt = <75000 150000 237000 500000 500000
++							  500000 500000 500000>;
++		qcom,mbhc-headset-vthreshold-microvolt = <1700000>;
++		qcom,mbhc-headphone-vthreshold-microvolt = <50000>;
++
++		qcom,rx-device = <&wcd_rx>;
++		qcom,tx-device = <&wcd_tx>;
++
++		#sound-dai-cells = <1>;
++	};
++
+ 	chosen {
+ 		#address-cells = <2>;
+ 		#size-cells = <2>;
+@@ -1076,6 +1106,67 @@
+ 	/delete-property/ power-domains;
+ };
+ 
++&lpass_rx_macro {
++	status = "okay";
++};
++
++&lpass_rx_swr_clk {
++	drive-strength = <2>;
++	slew-rate = <1>;
++	bias-disable;
++};
++
++&lpass_rx_swr_data {
++	drive-strength = <2>;
++	slew-rate = <1>;
++	bias-bus-hold;
++};
++
++&lpass_tx_macro {
++	status = "okay";
++};
++
++&lpass_tx_swr_clk {
++	drive-strength = <2>;
++	slew-rate = <1>;
++	bias-disable;
++};
++
++&lpass_tx_swr_data {
++	drive-strength = <2>;
++	slew-rate = <1>;
++	bias-bus-hold;
++};
++
++&lpass_va_macro {
++	vdd-micb-supply = <&vreg_bob>;
++
++	/* No DMIC used on Nothing Phone (1) */
++	qcom,dmic-sample-rate = <4800000>;
++
++	status = "okay";
++};
++
++&swr0 {
++	status = "okay";
++
++	wcd_rx: codec@0,4 {
++		compatible = "sdw20217010d00";
++		reg = <0 4>;
++		qcom,rx-port-mapping = <1 2 3 4 5>;
++	};
++};
++
++&swr1 {
++	status = "okay";
++
++	wcd_tx: codec@0,3 {
++		compatible = "sdw20217010d00";
++		reg = <0 3>;
++		qcom,tx-port-mapping = <1 2 3 4>;
++	};
++};
++
+ &mdss {
+ 	status = "okay";
+ };
+@@ -1317,12 +1408,24 @@
+ 		reg = <PRIMARY_MI2S_RX>;
+ 		qcom,sd-lines = <1>;
+ 	};
++
++	dai@21 {
++		reg = <TX_CODEC_DMA_TX_3>;
++	};
+ };
+ 
+ &q6asmdai {
+ 	dai@0 {
+ 		reg = <MSM_FRONTEND_DAI_MULTIMEDIA1>;
+ 	};
++
++	dai@1 {
++		reg = <MSM_FRONTEND_DAI_MULTIMEDIA2>;
++	};
++
++	dai@2 {
++		reg = <MSM_FRONTEND_DAI_MULTIMEDIA3>;
++	};
+ };
+ 
+ &qfprom {
+@@ -1379,6 +1482,15 @@
+ 	pinctrl-names = "default",
+ 			"sleep";
+ 
++	audio-routing = "AMIC1", "MIC BIAS1",
++			"AMIC2", "MIC BIAS2",
++			"AMIC3", "MIC BIAS1",
++			"AMIC4", "MIC BIAS3",
++			"TX SWR_INPUT0", "ADC1_OUTPUT",
++			"TX SWR_INPUT1", "ADC2_OUTPUT",
++			"TX SWR_INPUT4", "ADC3_OUTPUT",
++			"TX SWR_INPUT5", "ADC4_OUTPUT";
++
+ 	mm1-dai-link {
+ 		link-name = "MultiMedia1";
+ 
+@@ -1387,6 +1499,22 @@
+ 		};
+ 	};
+ 
++	mm2-dai-link {
++		link-name = "MultiMedia2";
++
++		cpu {
++			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA2>;
++		};
++	};
++
++	mm3-dai-link {
++		link-name = "MultiMedia3";
++
++		cpu {
++			sound-dai = <&q6asmdai MSM_FRONTEND_DAI_MULTIMEDIA3>;
++		};
++	};
++
+ 	i2s-dai-link {
+ 		link-name = "I2S Playback";
+ 
+@@ -1402,6 +1530,22 @@
+ 			sound-dai = <&tfa9873_l 0>, <&tfa9873_r 0>;
+ 		};
+ 	};
++
++	wcd-capture-dai-link {
++		link-name = "WCD Capture";
++
++		codec {
++			sound-dai = <&wcd9385 1>, <&swr1 0>, <&lpass_tx_macro 0>;
++		};
++
++		cpu {
++			sound-dai = <&q6afedai TX_CODEC_DMA_TX_3>;
++		};
++
++		platform {
++			sound-dai = <&q6routing>;
++		};
++	};
+ };
+ 
+ &spi13 {
+@@ -1590,6 +1734,19 @@
+ 		drive-strength = <8>;
+ 		bias-pull-up;
+ 	};
++
++	wcd_reset_n: wcd-reset-n-state {
++		pins = "gpio83";
++		function = "gpio";
++		drive-strength = <16>;
++	};
++
++	wcd_reset_n_sleep: wcd-reset-n-sleep-state {
++		pins = "gpio83";
++		function = "gpio";
++		drive-strength = <16>;
++		bias-disable;
++	};
+ };
+ 
+ &uart5 {
+@@ -1687,3 +1844,54 @@
+ &wifi {
+ 	status = "okay";
+ };
++
++/* This should probably move into sc7280.dtsi / kodiak.dtsi, and the reverse to sc7280-chrome-common.dtsi */
++&lpass_rx_macro {
++	/delete-property/ power-domains;
++	/delete-property/ power-domain-names;
++	clocks = <&q6afecc LPASS_CLK_ID_TX_CORE_MCLK LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_CLK_ID_TX_CORE_NPL_MCLK LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_HW_MACRO_VOTE LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_HW_DCODEC_VOTE LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&lpass_va_macro>;
++	clock-names = "mclk",
++		      "npl",
++		      "macro",
++		      "dcodec",
++		      "fsgen";
++
++	clock-output-names = "mclk";
++};
++
++&lpass_tx_macro {
++	compatible = "qcom,sm7325-lpass-tx-macro",
++		     "qcom,sm8450-lpass-tx-macro";
++
++	/delete-property/ power-domains;
++	/delete-property/ power-domain-names;
++	clocks = <&q6afecc LPASS_CLK_ID_TX_CORE_MCLK LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_CLK_ID_TX_CORE_NPL_MCLK LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_HW_MACRO_VOTE LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_HW_DCODEC_VOTE LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&lpass_va_macro>;
++	clock-names = "mclk",
++		      "npl",
++		      "macro",
++		      "dcodec",
++		      "fsgen";
++
++	clock-output-names = "mclk";
++};
++
++&lpass_va_macro {
++	/delete-property/ power-domains;
++	/delete-property/ power-domain-names;
++	clocks = <&q6afecc LPASS_CLK_ID_TX_CORE_MCLK LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_HW_MACRO_VOTE LPASS_CLK_ATTRIBUTE_COUPLE_NO>,
++		 <&q6afecc LPASS_HW_DCODEC_VOTE LPASS_CLK_ATTRIBUTE_COUPLE_NO>;
++	clock-names = "mclk",
++		      "macro",
++		      "dcodec";
++
++	clock-output-names = "fsgen";
++};

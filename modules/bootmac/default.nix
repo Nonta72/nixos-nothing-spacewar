@@ -13,9 +13,9 @@
   pkgs,
   ...
 }: let
-  cfg = config.nixos-fairphone-fp5.bootmac;
+  cfg = config.nixos-nothing-spacewar.bootmac;
 in {
-  options.nixos-fairphone-fp5.bootmac = {
+  options.nixos-nothing-spacewar.bootmac = {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;

@@ -4,9 +4,9 @@
   pkgs,
   ...
 }: let
-  cfg = config.nixos-fairphone-fp5.hardware;
+  cfg = config.nixos-nothing-spacewar.hardware;
 in {
-  options.nixos-fairphone-fp5.hardware = {
+  options.nixos-nothing-spacewar.hardware = {
     serial = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -38,12 +38,12 @@ in {
   ];
 
   config = {
-    # Apply the Fairphone FP5 overlay.
+    # Apply the nothing spacewar overlay.
     nixpkgs.overlays = [
-      (import ../../overlays/fairphone-fp5)
+      (import ../../overlays/nothing-spacewar)
     ];
 
-    # Target architecture for Fairphone 5.
+    # Target architecture for Nothing Phone (1).
     nixpkgs.hostPlatform = "aarch64-linux";
 
     hardware = {
@@ -52,14 +52,14 @@ in {
       deviceTree = {
         enable = true;
 
-        name = "qcom/qcm6490-fairphone-fp5.dtb";
+        name = "qcom/sm7325-nothing-spacewar.dtb";
       };
 
       # Enable all firmware regardless of license.
       enableAllFirmware = true;
-      # Use our custom Fairphone 5 firmware package (see `flake.nix`).
+      # Use our custom Nothing Phone (1) firmware package (see `flake.nix`).
       firmware = with pkgs; [
-        firmware-fairphone-fp5
+        firmware-nothing-spacewar
       ];
       # Qualcomm firmware must be uncompressed.
       firmwareCompression = "none";
@@ -67,7 +67,7 @@ in {
 
     boot = {
       # Use our custom `sc7280-mainline` kernel (see `flake.nix`).
-      kernelPackages = pkgs.linuxPackagesFor pkgs.kernel-fairphone-fp5;
+      kernelPackages = pkgs.linuxPackagesFor pkgs.kernel-nothing-spacewar;
 
       initrd = {
         enable = true;
@@ -78,15 +78,13 @@ in {
         compressor = "gzip";
 
         # Kernel modules required in initramfs for device boot.
-        # See: https://gitlab.postmarketos.org/postmarketOS/pmaports/-/blob/master/device/testing/device-fairphone-fp5/modules-initfs.
+        # See: https://gitlab.postmarketos.org/postmarketOS/pmaports/-/blob/master/device/testing/device-nothing-spacewar/modules-initfs.
         availableKernelModules = [
           # Device-specific drivers.
           "fsa4480" # USB-C audio switch.
-          "goodix_berlin_core" # Touchscreen core driver.
-          "goodix_berlin_spi" # Touchscreen SPI interface.
+          "fts_tp" # Touchscreen driver.
           "msm"
-          "panel-raydium-rm692e5" # Display panel driver.
-          "ptn36502" # USB-C redriver.
+          "panel-visionox-rm692e5" # Display panel driver.
           "spi-geni-qcom" # Qualcomm SPI controller.
         ];
 
@@ -159,7 +157,7 @@ in {
           ]
           ++ [
             # Hardware UART serial console.
-            # See: https://gitlab.postmarketos.org/postmarketOS/pmaports/-/blob/master/device/testing/device-fairphone-fp5/deviceinfo.
+            # See: https://gitlab.postmarketos.org/postmarketOS/pmaports/-/blob/master/device/testing/device-nothing-spacewar/deviceinfo.
             "console=ttyMSM0,115200"
 
             # Framebuffer console; makes boot messages visible on the phone's screen.

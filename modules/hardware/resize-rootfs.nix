@@ -2,7 +2,7 @@
   # Automatically resize the root filesystem to fill the entire partition on first boot.
   # This is necessary because the flashed ext4 image is sized to fit only the initial
   # rootfs contents (~9-10 GB), while the userdata partition is much larger (214 GB on
-  # Fairphone 5). This service expands the filesystem to utilize the full partition.
+  # Nothing Phone 1). This service expands the filesystem to utilize the full partition.
   systemd.services.resize-rootfs = {
     description = "Resize root filesystem to fill partition";
     wantedBy = ["local-fs.target"];

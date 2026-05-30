@@ -4,9 +4,9 @@
   pkgs,
   ...
 }: let
-  cfg = config.nixos-fairphone-fp5.gnome-mobile;
+  cfg = config.nixos-nothing-spacewar.gnome-mobile;
 in {
-  options.nixos-fairphone-fp5.gnome-mobile = {
+  options.nixos-nothing-spacewar.gnome-mobile = {
     defaultWallpaper = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -42,14 +42,14 @@ in {
 
   config = let
     # Wallpaper configuration package.
-    nixos-fairphone-wallpaper-info = pkgs.writeTextFile {
-      name = "nixos-fairphone-wallpaper-info";
+    nixos-nothing-wallpaper-info = pkgs.writeTextFile {
+      name = "nixos-nothing-wallpaper-info";
       text = ''
         <?xml version="1.0"?>
         <!DOCTYPE wallpapers SYSTEM "gnome-wp-list.dtd">
         <wallpapers>
           <wallpaper deleted="false">
-            <name>NixOS Fairphone</name>
+            <name>NixOS nothing</name>
             <filename>${cfg.defaultWallpaper.path}</filename>
             <filename-dark>${cfg.defaultWallpaper.path}</filename-dark>
             <options>zoom</options>
@@ -59,12 +59,12 @@ in {
           </wallpaper>
         </wallpapers>
       '';
-      destination = "/share/gnome-background-properties/nixos-fairphone-wallpaper.xml";
+      destination = "/share/gnome-background-properties/nixos-nothing-wallpaper.xml";
     };
   in {
     # Install wallpaper metadata if wallpaper is enabled.
     environment.systemPackages = lib.optionals cfg.defaultWallpaper.enable [
-      nixos-fairphone-wallpaper-info
+      nixos-nothing-wallpaper-info
     ];
 
     programs.dconf = {

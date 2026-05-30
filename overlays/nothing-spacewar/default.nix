@@ -1,15 +1,15 @@
-# Nixpkgs overlay to add custom Fairphone 5 packages.
+# Nixpkgs overlay to add custom Nothing Phone (1) packages.
 final: prev: {
   # Qualcomm firmware squasher to convert split `.mdt` (meta data table) firmware files
   # to monolithic `.mbn` (multi-binary) format. Note: This is a build-time tool that
   # runs during firmware preparation (not on the device).
   pil-squasher = final.callPackage ../../packages/pil-squasher {};
 
-  # Firmware package for Fairphone 5.
-  firmware-fairphone-fp5 = final.callPackage ../../packages/firmware {};
+  # Firmware package for Nothing Phone (1).
+  firmware-nothing-spacewar = final.callPackage ../../packages/firmware {};
 
-  # Custom kernel package for Fairphone 5.
-  kernel-fairphone-fp5 = final.callPackage ../../packages/kernel {};
+  # Custom kernel package for Nothing Phone (1).
+  kernel-nothing-spacewar = final.callPackage ../../packages/kernel {};
 
   # Protection domain mapper for Qualcomm modems.
   pd-mapper = final.callPackage ../../packages/qrtr/pd-mapper.nix {};

@@ -4,9 +4,9 @@
   pkgs,
   ...
 }: let
-  cfg = config.nixos-fairphone-fp5.gnome-mobile;
+  cfg = config.nixos-nothing-spacewar.gnome-mobile;
 in {
-  options.nixos-fairphone-fp5.gnome-mobile = {
+  options.nixos-nothing-spacewar.gnome-mobile = {
     installDefaultApps = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -228,14 +228,14 @@ in {
     programs.calls.enable = cfg.installDefaultApps;
 
     # Ensure ModemManager is started before NetworkManager.
-    systemd.services.ModemManager = lib.mkIf config.nixos-fairphone-fp5.modem.enable {
+    systemd.services.ModemManager = lib.mkIf config.nixos-nothing-spacewar.modem.enable {
       aliases = ["dbus-org.freedesktop.ModemManager1.service"];
       wantedBy = ["NetworkManager.service"];
       partOf = ["NetworkManager.service"];
       after = ["NetworkManager.service"];
     };
 
-    # FIXME: Audio hardware is not yet detected on the Fairphone, which is not
+    # FIXME: Audio hardware is not yet detected on the nothing, which is not
     # a problem with PipeWire itself.
     #
     # Enable sound with PipeWire.

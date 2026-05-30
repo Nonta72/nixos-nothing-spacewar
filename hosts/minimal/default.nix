@@ -1,10 +1,10 @@
 {
-  # Import hardware-specific configuration for Fairphone 5.
+  # Import hardware-specific configuration for Nothing Phone (1).
   imports = [
     ../../modules/hardware
   ];
 
-  networking.hostName = "fairphone";
+  networking.hostName = "nothing";
 
   # Enable experimental Nix features (flakes).
   nix.settings.experimental-features = ["nix-command" "flakes"];
