@@ -1,0 +1,107 @@
+name: Build NixOS - Nothing Phone (1)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Build target'
+        required: true
+        default: 'gnome-mobile'
+        type: choice
+        options:
+          - gnome-mobile
+          - minimal
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Free disk space (aggressive)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - name: Show available disk space
+        run: df -h
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            extra-platforms = aarch64-linux
+            substituters = https://cache.nixos.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+            min-free = 5368709120
+            max-free = 10737418240
+
+      - name: Set up QEMU for aarch64
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Set build target
+        id: target
+        run: |
+          # Use workflow_dispatch input if triggered manually, otherwise default to gnome-mobile
+          TARGET="${{ github.event.inputs.target || 'gnome-mobile' }}"
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+          echo "Building target: $TARGET"
+
+      - name: Build boot image
+        run: |
+          nix build \
+            .#packages.aarch64-linux.boot-image-${{ steps.target.outputs.target }} \
+            --no-link \
+            --print-build-logs \
+            --show-trace \
+            2>&1 | tee build.log
+
+      - name: Build rootfs image
+        run: |
+          nix build \
+            .#packages.aarch64-linux.rootfs-image-${{ steps.target.outputs.target }} \
+            --no-link \
+            --print-build-logs \
+            2>&1 | tee -a build.log
+
+      - name: Copy output images
+        run: |
+          mkdir -p output
+          cp -v $(nix path-info .#packages.aarch64-linux.boot-image-${{ steps.target.outputs.target }}) output/boot.img
+          cp -v $(nix path-info .#packages.aarch64-linux.rootfs-image-${{ steps.target.outputs.target }}) output/rootfs.img
+          ls -lh output/
+
+      - name: Upload boot.img
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-spacewar-boot-${{ steps.target.outputs.target }}
+          path: output/boot.img
+          retention-days: 30
+
+      - name: Upload rootfs.img
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-spacewar-rootfs-${{ steps.target.outputs.target }}
+          path: output/rootfs.img
+          retention-days: 30
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 7
