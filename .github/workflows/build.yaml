@@ -1,8 +1,6 @@
 name: Build NixOS - Nothing Phone (1)
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
     inputs:
       target:
