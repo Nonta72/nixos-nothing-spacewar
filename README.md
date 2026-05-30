@@ -1,12 +1,12 @@
-# NixOS on Fairphone 5
+# NixOS on Nothing Phone (1)
 
-This repository aims to port NixOS to the Fairphone 5, a modular and sustainable smartphone. The goal is to provide a fully functional NixOS system that can run on the Fairphone 5, and to support as many of its hardware features as possible.
+This repository aims to port NixOS to the Nothing Phone (1), a modular and sustainable smartphone. The goal is to provide a fully functional NixOS system that can run on the Nothing Phone (1), and to support as many of its hardware features as possible.
 
-The Fairphone 5 uses a Qualcomm QCM6490 SoC, which is based on the ARM architecture and is very similar to the Qualcomm SC7280 SoC found in various other devices. This repository builds on existing work by the amazing PostmarketOS community, mainly their work on porting the Linux kernel and other essential components to the Fairphone 5. For more information regarding the status of the port, see the [Fairphone 5 page](<https://wiki.postmarketos.org/wiki/Fairphone_5_(fairphone-fp5)>) in the PostmarketOS Wiki.
+The Nothing Phone (1) uses a Qualcomm sm7325 SoC, which is based on the ARM architecture and is very similar to the Qualcomm SC7280 SoC found in various other devices. This repository builds on existing work by the amazing PostmarketOS community, mainly their work on porting the Linux kernel and other essential components to the Nothing Phone (1).
 
 <div align="center">
-   <img src="./.docs/picture-gnome-mobile-1.jpeg" alt="Home screen on Fairphone 5 running NixOS with GNOME Mobile" width="300" hspace="10" vspace="10" />
-   <img src="./.docs/picture-gnome-mobile-2.jpeg" alt="Terminal on Fairphone 5 running NixOS with GNOME Mobile" width="300" hspace="10" vspace="10" />
+   <img src="./.docs/picture-gnome-mobile-1.jpeg" alt="Home screen on Nothing Phone (1) running NixOS with GNOME Mobile" width="300" hspace="10" vspace="10" />
+   <img src="./.docs/picture-gnome-mobile-2.jpeg" alt="Terminal on Nothing Phone (1) running NixOS with GNOME Mobile" width="300" hspace="10" vspace="10" />
 </div>
 
 ## Current Status
@@ -35,8 +35,8 @@ Note: Hardware was tested using the GNOME Mobile builds. When using the minimal 
 
 **Prerequisites:**
 
-- A Fairphone 5 device, obviously :)
-- The device must have an unlocked bootloader. Follow the instructions on the [Fairphone 5 page](<https://wiki.postmarketos.org/wiki/Fairphone_5_(fairphone-fp5)>) in the PostmarketOS Wiki if you haven't done this yet.
+- A Nothing Phone (1) device, obviously :)
+- The device must have an unlocked bootloader.
 - An `aarch64-linux` NixOS host to build the images. Other distributions that have Nix installed may also work, but have not been tested. Alternatively, you can use a remote builder from any Nix-enabled system.
 
 **Optional: Set up Remote Builder**
@@ -55,47 +55,47 @@ If you're able to connect, you're ready to use the remote builder to build your 
 
 ### Add Module to your NixOS Configuration
 
-If you want to use NixOS your own Fairphone 5, the images built from the example configurations provided in this repository will probably not be sufficient. Instead, you can add the Fairphone 5 module to your own `flake.nix` and build your own images like this:
+If you want to use NixOS your own Nothing Phone (1), the images built from the example configurations provided in this repository will probably not be sufficient. Instead, you can add the Nothing Phone (1) module to your own `flake.nix` and build your own images like this:
 
 ```nix
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixos-fairphone-fp5.url = "github:gian-reto/nixos-fairphone-fp5";
+    nixos-nothing-spacewar.url = "github:Nonta72/nixos-nothing-spacewar";
   };
 
-  outputs = { self, nixpkgs, nixos-fairphone-fp5, ... }: {
-   nixosConfigurations.my-fairphone = nixpkgs.lib.nixosSystem {
+  outputs = { self, nixpkgs, nixos-nothing-spacewar, ... }: {
+   nixosConfigurations.my-nothing = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
       modules = [
-        # Import the Fairphone 5 NixOS module.
-        nixos-fairphone-fp5.nixosModules.default
+        # Import the Nothing Phone (1) NixOS module.
+        nixos-nothing-spacewar.nixosModules.default
 
         # Import your own custom configuration.
-        ./hosts/my-fairphone/default.nix
+        ./hosts/my-nothing/default.nix
       ];
     };
 
     # Use the `mkBootImage` and `mkRootfsImage` functions provided by this flake to be able to build
     # boot and rootfs images from your custom configuration, so you can easily flash the first
-    # generation of your configuration to your Fairphone 5 using `fastboot`.
+    # generation of your configuration to your Nothing Phone (1) using `fastboot`.
     packages.aarch64-linux =
       let
         pkgs = nixpkgs.legacyPackages.aarch64-linux;
       in {
-        boot-image = nixos-fairphone-fp5.lib.mkBootImage
-          self.nixosConfigurations.my-fairphone
+        boot-image = nixos-nothing-spacewar.lib.mkBootImage
+          self.nixosConfigurations.my-nothing
           pkgs;
 
-        rootfs-image = nixos-fairphone-fp5.lib.mkRootfsImage
-          self.nixosConfigurations.my-fairphone
+        rootfs-image = nixos-nothing-spacewar.lib.mkRootfsImage
+          self.nixosConfigurations.my-nothing
           pkgs;
 
         # Alternatively, if you use Home Manager, use `mkRootfsImageWithHomeManager` to build the
         # rootfs image including Home Manager configuration instead of `mkRootfsImage`:
         #
-        # rootfs-image = nixos-fairphone-fp5.lib.mkRootfsImageWithHomeManager
-        #   self.nixosConfigurations.my-fairphone
+        # rootfs-image = nixos-nothing-spacewar.lib.mkRootfsImageWithHomeManager
+        #   self.nixosConfigurations.my-nothing
         #   pkgs;
       };
   };
@@ -103,12 +103,12 @@ If you want to use NixOS your own Fairphone 5, the images built from the example
 ```
 
 > [!TIP]
-> If you use remote builders, I recommend configuring Nix to always use remote builders by default on your Fairphone. This way, you don't have to rebuild locally on your phone if you do a `nixos-rebuild switch` on the device itself. Otherwise, builds might take a very long time or even fail due to insufficient resources (I have not even dared to try yet, so I'm not sure what happens!).
+> If you use remote builders, I recommend configuring Nix to always use remote builders by default on your Nonthing Phone. This way, you don't have to rebuild locally on your phone if you do a `nixos-rebuild switch` on the device itself. Otherwise, builds might take a very long time or even fail due to insufficient resources (I have not even dared to try yet, so I'm not sure what happens!).
 
 ### Build and Flash Images
 
 1. Put your device into `fastboot` mode by turning it off first, and then holding the volume down and power button simultaneously until the device powers on and displays the `fastboot` screen.
-2. Connect the Fairphone 5 to your host machine via USB-C.
+2. Connect the Nothing Phone (1) to your host machine via USB-C.
 
 If you added the image packages as shown above, you can simply build the images using the following commands:
 
@@ -161,22 +161,22 @@ Just wait until the device has fully booted, which could take a while. You shoul
 
 ## Advanced Usage
 
-In some advanced use cases, you might want to change the process of building the images, or do other customizations. In that case, you can use the `fairphone-fp5` overlay provided by this flake directly, which allows you to use the included packages in the way you want.
+In some advanced use cases, you might want to change the process of building the images, or do other customizations. In that case, you can use the `nothing-spacewar` overlay provided by this flake directly, which allows you to use the included packages in the way you want.
 
 ```nix
 {
-  inputs.nixos-fairphone-fp5.url = "github:gian-reto/nixos-fairphone-fp5";
+  inputs.nixos-nothing-spacewar.url = "github:gian-reto/nixos-nothing-spacewar";
 
-  outputs = { nixpkgs, nixos-fairphone-fp5, ... }: {
-    nixosConfigurations.my-fairphone = nixpkgs.lib.nixosSystem {
+  outputs = { nixpkgs, nixos-nothing-spacewar, ... }: {
+    nixosConfigurations.my-nothing = nixpkgs.lib.nixosSystem {
       system = "aarch64-linux";
       modules = [
         {
-          nixpkgs.overlays = [ nixos-fairphone-fp5.overlays.default ];
+          nixpkgs.overlays = [ nixos-nothing-spacewar.overlays.default ];
 
-          # Now you have access to all Fairphone packages:
-          # pkgs.kernel-fairphone-fp5
-          # pkgs.firmware-fairphone-fp5
+          # Now you have access to all Nothing packages:
+          # pkgs.kernel-nothing-spacewar
+          # pkgs.firmware-nothing-spacewar
           # pkgs.pd-mapper, pkgs.qrtr, pkgs.rmtfs, etc.
         }
         # Your custom configuration...
@@ -188,7 +188,7 @@ In some advanced use cases, you might want to change the process of building the
 
 ## Development & Contribution
 
-This flake outputs packages for building boot and rootfs images for the two example host configurations in `./hosts`. These can be built on their own and flashed to a Fairphone 5 as described in the "Getting Started" section above. By default, the user is called "admin", and the password is "admin" as well.
+This flake outputs packages for building boot and rootfs images for the two example host configurations in `./hosts`. These can be built on their own and flashed to a Nothing Phone (1) as described in the "Getting Started" section above. By default, the user is called "admin", and the password is "admin" as well.
 
 At the moment, the development process is mostly done by changing code, building new images, and then testing them on the device. This can be quite tedious, as the build times are relatively long (even with a remote builder), but for now this is the best way to make sure everything works as expected on the actual hardware.
 
@@ -200,6 +200,6 @@ Coding agents must adhere to the instructions and guidelines outlined in [AGENTS
 
 ## Thanks
 
-- Huge thanks to the PostmarketOS community for their incredible work on porting Linux to the Fairphone 5 (especially to Luca Weiss, the main maintainer of the Fairphone ports) and other devices. Their efforts have laid the groundwork for this NixOS port, and their documentation and resources have been invaluable throughout the development process.
-- This port was also inspired by [MatthewCroughan/nixos-qcm6490](https://github.com/MatthewCroughan/nixos-qcm6490), which is an attempt to port NixOS to the SHIFTphone 8 (otter), which uses the same SoC as the Fairphone 5. Not sure if the port was successful, but the code was still an invaluable reference. Thanks, Matthew!
+- Huge thanks to the PostmarketOS community for their incredible work on porting Linux to the Nothing Phone (1) (especially to Luca Weiss, the main maintainer of the Spacwar ports) and other devices. Their efforts have laid the groundwork for this NixOS port, and their documentation and resources have been invaluable throughout the development process.
+- This port was also inspired by [MatthewCroughan/nixos-sm7325](https://github.com/MatthewCroughan/nixos-sm7325), which is an attempt to port NixOS to the SHIFTphone 8 (otter), which uses the same SoC as the Nothing Phone (1). Not sure if the port was successful, but the code was still an invaluable reference. Thanks, Matthew!
 - [chuangzhu/nixpkgs-gnome-mobile](https://github.com/chuangzhu/nixpkgs-gnome-mobile) was an invaluable resource for getting GNOME Mobile to work on NixOS.
