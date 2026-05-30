@@ -15,7 +15,7 @@ stdenv.mkDerivation {
     owner = "Nonta72";
     repo = "firmware-nothing-spacewar";
     rev = "5398e11062c186a9771f22c54acb225fe9e0a20f";
-    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    hash = "sha256-u67vBXRLcyCg4ucQo5ei8h6I+jvrjoeojTuW4W6eh2Y=";
   };
 
   meta = {
