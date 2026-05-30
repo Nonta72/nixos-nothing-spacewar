@@ -69,7 +69,7 @@ stdenv.mkDerivation {
       modemr.jsn
 
     # Install IPA firmware (renamed to ipa_fws.mbn for kernel compatibility).
-    install -Dm644 yupik_ipa_fws.mbn \
+    install -Dm644 ipa_fws.mbn \
       "$out/lib/firmware/qcom/sm7325/nothing/spacewar/ipa_fws.mbn"
 
     # Install Venus video firmware (renamed to venus.mbn for kernel compatibility).
