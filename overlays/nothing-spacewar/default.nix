@@ -28,4 +28,8 @@ final: prev: {
 
   # Configure MAC addresses at boot for WiFi and Bluetooth.
   bootmac = final.callPackage ../../packages/bootmac {};
+
+  xdg-desktop-portal = prev.xdg-desktop-portal.overrideAttrs (old: {
+    doCheck = false;
+  });
 }
