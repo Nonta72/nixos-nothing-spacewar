@@ -26,15 +26,7 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
-
-      - name: Create swap space
-        run: |
-          sudo fallocate -l 8G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          free -h
+          swap-storage: false
 
       - name: Show available disk space
         run: df -h
@@ -47,15 +39,20 @@ jobs:
         with:
           extra_nix_config: |
             experimental-features = nix-command flakes
-            substituters = https://cache.nixos.org
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+            substituters = https://cache.nixos.org https://nixos-nothing-spacewar.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nixos-nothing-spacewar.cachix.org-1:${{ secrets.CACHIX_PUBLIC_KEY }}
             min-free = 5368709120
             max-free = 10737418240
+
+      - name: Set up Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: nixos-nothing-spacewar
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - name: Set build target
         id: target
         run: |
-          # Use workflow_dispatch input if triggered manually, otherwise default to gnome-mobile
           TARGET="${{ github.event.inputs.target || 'gnome-mobile' }}"
           echo "target=$TARGET" >> $GITHUB_OUTPUT
           echo "Building target: $TARGET"
