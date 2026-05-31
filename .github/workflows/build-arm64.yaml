@@ -37,10 +37,10 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
-          extra_nix_config: |
+         extra_nix_config: |
             experimental-features = nix-command flakes
-            substituters = https://cache.nixos.org https://nixos-nothing-spacewar.cachix.org
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nixos-nothing-spacewar.cachix.org-1:${{ secrets.CACHIX_PUBLIC_KEY }}
+            substituters = https://cache.nixos.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
             min-free = 5368709120
             max-free = 10737418240
 
