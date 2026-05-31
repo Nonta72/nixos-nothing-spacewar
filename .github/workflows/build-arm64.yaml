@@ -48,7 +48,7 @@ jobs:
         uses: cachix/cachix-action@v17
         with:
           name: nixos-nothing-spacewar
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          authToken: 'eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJhNTg5NzE2MC01NWE3LTQ2ZWItOTU5Zi02OTZjMGNjNWE3ZWMiLCJzY29wZXMiOiJjYWNoZSJ9.YCHjyHKTN5zEitoCoIcK_ssRXZuhQyOceytSlZr_vM8'
 
       - name: Set build target
         id: target
