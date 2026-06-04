@@ -1,11 +1,11 @@
 {pkgs, ...}: {
   # Import hardware-specific configuration for Nothing Phone (1) and GNOME Mobile.
-  imports = [
-    ../../modules/bootmac
-    ../../modules/hardware
-    ../../modules/modem
-    ../../modules/gnome-mobile
-  ];
+#  imports = [
+#    ../../modules/bootmac
+#    ../../modules/hardware
+#    ../../modules/modem
+#    ../../modules/gnome-mobile
+#  ];
 
   networking.hostName = "nothing";
 
