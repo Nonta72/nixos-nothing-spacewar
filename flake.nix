@@ -1,233 +1,48 @@
 {
-  description = "NixOS on Nothing Phone (1)";
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixos-nothing-spacewar.url = "github:Nonta72/nixos-nothing-spacewar";
   };
 
-  outputs = {
-    nixpkgs,
-    flake-utils,
-    ...
-  }: let
-    # Builds the boot image that can be flashed to the `boot` partition using fastboot.
-    mkBootImage = nixosConfig: pkgs:
-      pkgs.runCommand "boot.img" {
-        nativeBuildInputs = with pkgs; [android-tools];
-      } ''
-        # Get paths from NixOS configuration.
-        kernelPath="${nixosConfig.config.system.build.kernel}"
-        initrdPath="${nixosConfig.config.system.build.initialRamdisk}/initrd"
-        initPath="${builtins.unsafeDiscardStringContext nixosConfig.config.system.build.toplevel}/init"
+  outputs = { self, nixpkgs, nixos-nothing-spacewar, ... }: {
+   nixosConfigurations.my-nothing = nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux";
+      modules = [
+        # Import the Nothing Phone (1) NixOS module.
+        nixos-nothing-spacewar.nixosModules.default
 
-        # Build kernel command line from NixOS config parameters.
-        # Add init= parameter to kernel params from config.
-        kernelParams="${builtins.toString nixosConfig.config.boot.kernelParams}"
-        cmdline="$kernelParams init=$initPath"
+        # Import your own custom configuration.
+        ./hosts/gnome-mobile/default.nix
 
-        # Concatenate kernel (Image.gz) with device tree blob.
-        # The bootloader expects them as a single file.
-        echo "Concatenating kernel and DTB..."
-        cat "$kernelPath/Image.gz" "$kernelPath/dtbs/qcom/sm7325-nothing-spacewar.dtb" > Image-with-dtb.gz
+    {
+      nixpkgs.config.allowUnfree = true;
+      nixpkgs.config.doCheckByDefault = false;
+    }
 
-        # Build Android boot image using mkbootimg.
-        # Parameters based on PostmarketOS deviceinfo.
-        echo "Building boot image with mkbootimg..."
-        echo "Using cmdline: $cmdline"
-        mkbootimg \
-          --header_version 2 \
-          --kernel Image-with-dtb.gz \
-          --ramdisk "$initrdPath" \
-          --cmdline "$cmdline" \
-          --base 0x00000000 \
-          --kernel_offset 0x00008000 \
-          --ramdisk_offset 0x01000000 \
-          --dtb_offset 0x01f00000 \
-          --tags_offset 0x00000100 \
-          --pagesize 4096 \
-          --dtb "$kernelPath/dtbs/qcom/sm7325-nothing-spacewar.dtb" \
-          -o "$out"
-
-        echo "Boot image created successfully: $out"
-        echo "Size: $(stat -c%s "$out") bytes"
-      '';
-
-    # Builds an `ext4` image containing the NixOS system that can be flashed to the `userdata`
-    # partition using fastboot.
-    mkRootfsImage = nixosConfig: pkgs:
-      pkgs.callPackage "${pkgs.path}/nixos/lib/make-ext4-fs.nix" {
-        storePaths = [nixosConfig.config.system.build.toplevel];
-        # Don't compress, as firmware needs to be uncompressed.
-        compressImage = false;
-        # Must match `fileSystems."/".device` label defined in`modules/hardware/default.nix`!
-        volumeLabel = "nixos";
-        populateImageCommands = ''
-          # Create the profile directory structure.
-          mkdir -p ./files/nix/var/nix/profiles
-
-          # Create first-generation NixOS profile and point to our initial toplevel.
-          ln -s ${nixosConfig.config.system.build.toplevel} ./files/nix/var/nix/profiles/system-1-link
-
-          # Set "system" to point to first-generation profile.
-          ln -s system-1-link ./files/nix/var/nix/profiles/system
-
-          # The bootloader expects /init, so point it to the profile's init.
-          # This symlink never needs to change!
-
-          # The Android bootloader appends init=/init to the kernel cmdline, which
-          # overrides our init=/nix/var/.../init parameter. Instead of fighting the
-          # bootloader, we create the symlink it expects. Note: This symlink is
-          # stable and always points to the current generation.
-          ln -s /nix/var/nix/profiles/system/init ./files/init
-        '';
-      };
-
-    # Builds an `ext4` image containing the NixOS system that can be flashed to the `userdata`
-    # partition using fastboot, but with additional `home-manager` support.
-    mkRootfsImageWithHomeManager = nixosConfig: pkgs: let
-      # Get all users that have `home-manager` configurations.
-      hmUsers = builtins.attrNames (nixosConfig.config.home-manager.users or {});
-
-      # Collect all `home-manager` activation packages.
-      hmActivationPackages =
-        builtins.map
-        (user: nixosConfig.config.home-manager.users.${user}.home.activationPackage)
-        hmUsers;
-    in
-      pkgs.callPackage "${pkgs.path}/nixos/lib/make-ext4-fs.nix" {
-        storePaths =
-          [
-            nixosConfig.config.system.build.toplevel
-          ]
-          ++ hmActivationPackages; # Include all home-manager activation packages
-        # Don't compress, as firmware needs to be uncompressed.
-        compressImage = false;
-        # Must match `fileSystems."/".device` label defined in`modules/hardware/default.nix`!
-        volumeLabel = "nixos";
-
-        populateImageCommands = ''
-          # Create the profile directory structure.
-          mkdir -p ./files/nix/var/nix/profiles
-          mkdir -p ./files/nix/var/nix/profiles/per-user
-
-          # Create first-generation NixOS profile.
-          ln -s ${nixosConfig.config.system.build.toplevel} ./files/nix/var/nix/profiles/system-1-link
-          # Set "system" to point to first-generation profile.
-          ln -s system-1-link ./files/nix/var/nix/profiles/system
-
-          # The bootloader expects /init.
-          ln -s /nix/var/nix/profiles/system/init ./files/init
-
-          # Create home-manager profiles for each user.
-          ${builtins.concatStringsSep "\n" (builtins.map (user: ''
-              # Create profile directory for ${user}.
-              mkdir -p ./files/nix/var/nix/profiles/per-user/${user}
-
-              # Create first-generation home-manager profile for ${user}.
-              ln -s ${nixosConfig.config.home-manager.users.${user}.home.activationPackage} \
-                ./files/nix/var/nix/profiles/per-user/${user}/home-manager-1-link
-              # Set home-manager to point to first-generation home profile.
-              ln -s home-manager-1-link \
-                ./files/nix/var/nix/profiles/per-user/${user}/home-manager
-
-              # Create user's .nix-profile symlink.
-              mkdir -p ./files/home/${user}
-              ln -s /nix/var/nix/profiles/per-user/${user}/home-manager \
-                ./files/home/${user}/.nix-profile
-            '')
-            hmUsers)}
-        '';
-      };
-  in
-    flake-utils.lib.eachSystem ["aarch64-linux"] (system: let
-      # Nixpkgs for building test images.
-      exampleConfigPkgs = import nixpkgs {
-        inherit system;
-
-        config = {
-          allowUnfree = true;
-          # FIXME: This is needed because of `chatty`, which supports Matrix and therefore
-          # unfortunately includes a dependency on `olm`, which is currently marked as
-          # insecure. This should be removed or fixed ASAP.
-          permittedInsecurePackages = [
-            "olm-3.2.16"
-          ];
-        };
-      };
-
-      # NixOS configurations for building example images for testing.
-      exampleNixosConfigurations = {
-        gnome-mobile = nixpkgs.lib.nixosSystem {
-          inherit system;
-
-          modules = [./hosts/gnome-mobile];
-          pkgs = exampleConfigPkgs;
-        };
-        minimal = nixpkgs.lib.nixosSystem {
-          inherit system;
-
-          modules = [./hosts/minimal];
-          pkgs = exampleConfigPkgs;
-        };
-      };
-    in {
-      # Example images built from internal host configs for testing.
-      packages =
-        nixpkgs.lib.foldlAttrs
-        (acc: name: nixosConfig:
-          acc
-          // {
-            "boot-image-${name}" = mkBootImage nixosConfig exampleConfigPkgs;
-            "rootfs-image-${name}" = mkRootfsImage nixosConfig exampleConfigPkgs;
-          })
-        {}
-        exampleNixosConfigurations;
-    })
-    // {
-      # Reusable library functions.
-      lib = {
-        inherit mkBootImage mkRootfsImage mkRootfsImageWithHomeManager;
-      };
-
-      # NixOS modules for external consumption.
-      nixosModules = {
-        minimal = {
-          imports = [
-            ./modules/bootmac
-            ./modules/hardware
-            ./modules/modem
-          ];
-        };
-
-        gnome-mobile = {
-          imports = [
-            ./modules/bootmac
-            ./modules/hardware
-            ./modules/modem
-            ./modules/gnome-mobile
-          ];
-        };
-
-        # Export `gnome-mobile` as the default module.
-        default = {
-          imports = [
-            ./modules/bootmac
-            ./modules/hardware
-            ./modules/modem
-            ./modules/gnome-mobile
-          ];
-        };
-      };
-
-      # Separate overlays for more custom use cases.
-      overlays = let
-        nothing-spacewar = import ./overlays/nothing-spacewar;
-      in {
-        inherit nothing-spacewar;
-
-        # Export `nothing-spacewar` as the default overlay.
-        default = nothing-spacewar;
-      };
+      ];
     };
+
+    # Use the `mkBootImage` and `mkRootfsImage` functions provided by this flake to be able to build
+    # boot and rootfs images from your custom configuration, so you can easily flash the first
+    # generation of your configuration to your Nothing Phone (1) using `fastboot`.
+    packages.aarch64-linux =
+      let
+        pkgs = nixpkgs.legacyPackages.aarch64-linux;
+      in {
+        boot-image = nixos-nothing-spacewar.lib.mkBootImage
+          self.nixosConfigurations.my-nothing
+          pkgs;
+
+        rootfs-image = nixos-nothing-spacewar.lib.mkRootfsImage
+          self.nixosConfigurations.my-nothing
+          pkgs;
+
+        # Alternatively, if you use Home Manager, use `mkRootfsImageWithHomeManager` to build the
+        # rootfs image including Home Manager configuration instead of `mkRootfsImage`:
+        #
+        # rootfs-image = nixos-nothing-spacewar.lib.mkRootfsImageWithHomeManager
+        #   self.nixosConfigurations.my-nothing
+        #   pkgs;
+      };
+  };
 }
