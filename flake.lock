@@ -18,7 +18,42 @@
         "type": "github"
       }
     },
+    "nixos-nothing-spacewar": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1780230659,
+        "narHash": "sha256-8QZk1x0OU09n2fD6LUosaNbOHYuR9N6Bl3FrkrGvXcs=",
+        "owner": "Nonta72",
+        "repo": "nixos-nothing-spacewar",
+        "rev": "3543fdd71faaa75551132bc325c756a391a864b8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Nonta72",
+        "repo": "nixos-nothing-spacewar",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1763966396,
+        "narHash": "sha256-6eeL1YPcY1MV3DDStIDIdy/zZCDKgHdkCmsrLJFiZf0=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "5ae3b07d8d6527c42f17c876e404993199144b6a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1763966396,
         "narHash": "sha256-6eeL1YPcY1MV3DDStIDIdy/zZCDKgHdkCmsrLJFiZf0=",
@@ -36,8 +71,8 @@
     },
     "root": {
       "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixos-nothing-spacewar": "nixos-nothing-spacewar",
+        "nixpkgs": "nixpkgs_2"
       }
     },
     "systems": {
